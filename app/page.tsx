@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { createLucideIcon } from "lucide-react";
+import MarqueeRow from "./marquee-row";
+import ThemeToggle from "./theme-toggle";
 
 export const metadata: Metadata = { title: "Naturopathy Clinic | Coming Soon" };
 
@@ -24,19 +26,8 @@ const rows = [
   ["Tennis Elbow", "Multiple Sclerosis", "Hypertension (B.P.)", "Frozen Shoulder", "Ankle Sprain", "Sinus", "Calf Pain", "ACL / Meniscus Tear", "Eye Pressure", "Insomnia / Tinnitus", "Meningitis", "Piles", "Cerebral Palsy", "Skin Diseases", "Diabetes Side Effects", "Cancer Post Recovery", "Muscle Tear", "Parkinson's", "Muscular Dystrophy"],
 ];
 
-// Opening-progress chart: weekly % complete (y: 0-100)
-const X0 = 36, X1 = 288, Y0 = 112, Y1 = 12;
-const weeks = ["W1", "W2", "W3", "W4", "W5", "W6"];
-const design = [0, 6, 12, 19, 25, 30];
-const launch = [0, 0, 1, 2, 3, 5];
-const px = (i: number) => X0 + ((X1 - X0) * i) / (weeks.length - 1);
-const py = (v: number) => Y0 - ((Y0 - Y1) * v) / 100;
-const curve = (d: number[]) =>
-  d.reduce((s, v, i) => {
-    if (!i) return `M${px(0)} ${py(v)}`;
-    const m = (px(i - 1) + px(i)) / 2;
-    return `${s}C${m} ${py(d[i - 1])} ${m} ${py(v)} ${px(i)} ${py(v)}`;
-  }, "");
+// Opening progress (real values; no invented history)
+const progress = [["Design", 30], ["Launch", 5]] as const;
 
 const labels = [["Expertise", "l1"], ["Wellness", "l2"], ["Care", "l3 rv"]];
 
@@ -53,49 +44,32 @@ export default function ComingSoon() {
           <div className="cs-logo">NATUROPATHY CLINIC<i /></div>
           <div className="cs-mid">
             <small>Launching soon</small>
-            <h1>Expert care for your health and wellness<i /></h1>
-            <p><em>Dr Rakesh Bendale</em> provides compassionate, professional support to keep you and your loved ones safe and well.</p>
+            <h1><em>Dr Rakesh Bendale</em><i /></h1>
+            <p>Expert care for your health and wellness, with compassionate, professional support to keep you and your loved ones safe and well.</p>
             <a className="cs-btn" href={wa} target="_blank" rel="noopener noreferrer">Book an Appointment</a>
           </div>
           <div className="cs-mq">
-            {rows.map((items, r) => (
-              <ul key={r} className={`cs-row${r ? " back" : ""}`} style={{ animationDuration: `${items.length * 4}s` }}>
-                {[...items, ...items].map((t, i) => (
-                  <li key={i} className={i >= items.length ? "dup" : undefined} aria-hidden={i >= items.length || undefined}>{t}</li>
-                ))}
-              </ul>
-            ))}
+            {rows.map((items, r) => <MarqueeRow key={r} items={items} back={r === 1} />)}
           </div>
         </div>
         <div className="cs-r">
           <div className="cs-soc">{social.map(([n, Icon]) => <a key={n} className={n.toLowerCase()} href="#" aria-label={n}><Icon size={24} /></a>)}</div>
+          <ThemeToggle />
           {labels.map(([t, c]) => <span key={t} className={`cs-lb ${c}`}>{t}<b>+</b></span>)}
           <div className="cs-card">
             <h3>Opening progress</h3>
-            <svg viewBox="0 0 300 136" role="img" aria-label="Design 30% complete, launch 5% complete">
-              <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#5b9a3f" stopOpacity=".35" /><stop offset="1" stopColor="#5b9a3f" stopOpacity="0" /></linearGradient></defs>
-              {[0, 25, 50, 75, 100].map((v) => (
-                <g key={v}>
-                  <line x1={X0} x2={X1} y1={py(v)} y2={py(v)} stroke="#000" strokeOpacity={v ? ".07" : ".18"} strokeDasharray={v ? "3 3" : undefined} />
-                  <text x={X0 - 6} y={py(v) + 3} textAnchor="end" fontSize="8" fill="#888">{v}%</text>
-                </g>
+            <ul className="cs-bars">
+              {progress.map(([name, v]) => (
+                <li key={name}>
+                  <div className="bl"><span>{name}</span><b>{v}%</b></div>
+                  <div className="bt" role="progressbar" aria-label={`${name} progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={v}><span style={{ width: `${v}%` }} /></div>
+                </li>
               ))}
-              {weeks.map((w, i) => <text key={w} x={px(i)} y={Y0 + 14} textAnchor="middle" fontSize="8" fill="#888">{w}</text>)}
-              <path d={`${curve(design)}L${X1} ${Y0}L${X0} ${Y0}Z`} fill="url(#g)" />
-              <path d={curve(design)} fill="none" stroke="#4c8a34" strokeWidth="2" strokeLinecap="round" />
-              <path d={curve(launch)} fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round" />
-              {design.map((v, i) => <circle key={i} cx={px(i)} cy={py(v)} r="2" fill="#fff" stroke="#4c8a34" strokeWidth="1.2" />)}
-              {launch.map((v, i) => <circle key={i} cx={px(i)} cy={py(v)} r="2" fill="#fff" stroke="#111" strokeWidth="1.2" />)}
-              <circle cx={X1} cy={py(30)} r="4" fill="#4c8a34" stroke="#fff" strokeWidth="2" />
-              <circle cx={X1} cy={py(5)} r="4" fill="#111" stroke="#fff" strokeWidth="2" />
-              <text x={X1} y={py(30) - 9} textAnchor="end" fontSize="10" fontWeight="600" fill="#4c8a34">30%</text>
-              <text x={X1} y={py(5) - 9} textAnchor="end" fontSize="10" fontWeight="600" fill="#111">5%</text>
-            </svg>
-            <em><span>Design 30%</span><span>Launch 5%</span></em>
+            </ul>
           </div>
         </div>
       </main>
-      <p className="cs-f">Designed &amp; Developed by <b>HyperStellar Technology</b></p>
+      <p className="cs-f">Designed &amp; Developed by <a href="https://www.hyperstellartechnology.in" target="_blank" rel="noopener noreferrer"><b>HyperStellar Technology</b></a></p>
     </div>
   );
 }
